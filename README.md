@@ -4,4 +4,4 @@ End-of-Line Battery Cycling is neccessary for validating the battery packs manuf
 <br>
 Following are the versions used for Version Control System:
 <br>
-<p style = "padding:0 0 10 0; background-color : #000;">1. Let it go again</p>
+<p style="padding:8px; background-color:#000000;">1. Let it go again</p>
