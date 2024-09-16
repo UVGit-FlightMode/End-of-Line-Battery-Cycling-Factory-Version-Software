@@ -4,4 +4,4 @@ End-of-Line Battery Cycling is neccessary for validating the battery packs manuf
 <br>
 EoL Battery Cycling software helps in automating the entire battery cycling process. It intracts with the Cycler, VCU and QRScanner and set up communication between each other to complete the cycling process successfully.
 <br>
-1. Version 1.1.1  (Current Version)
+1. Version 1.1.1 (Current Version)
