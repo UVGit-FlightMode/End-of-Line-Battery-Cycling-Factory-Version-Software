@@ -1,5 +1,7 @@
 # End-of-Line-Battery-Cycling-Factory-Version-Software
 
-Let it go
+End-of-Line Battery Cycling is neccessary for validating the battery packs manufactured in the UV Factory. It helps in taking decisions for GO and NO-GO for the battery packs. 
 <br>
-Let it go again
+Following are the versions used for Version Control System:
+<br>
+<span style = "padding:0 0 1 0">1. Let it go again</span>
