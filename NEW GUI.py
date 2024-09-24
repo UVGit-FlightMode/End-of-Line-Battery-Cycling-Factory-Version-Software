@@ -2329,6 +2329,9 @@ class EoLAnalysis(threading.Thread):
         if len(current_sequence) >= Threshold:
             sequences.append(current_sequence)
         return sequences
+    
+    def moving_average(data, window_size):
+        return data.rolling(window=window_size).mean()
 
     def SolderIssueDetection(self, data):
         #Signal
@@ -2402,37 +2405,47 @@ class EoLAnalysis(threading.Thread):
         return Signal
 
     def TemperatureFluctuationDetection(self, data):
-        #Signal
+        #data initialization
+        TS_FILE_DF = data
+        #Signal Initialization
         Signal = 0
-        Threshold1 = 10000
-        Threshold2 = 1
-        #Finding dT for all cells
-        arr = []
-        for i in range(0,13):
-            if i == 0:
-                arr.append(data['TS0_FLT'].diff().dropna().reset_index(drop = True))
-            else:
-                arr.append(data[f'TS{i}'].diff().dropna().reset_index(drop = True))
-        arr.append(data['TS13_FLT'].diff().dropna().reset_index(drop = True))
-
-        #Finding dt
-        dt = data['Millis'].diff().dropna().reset_index(drop = True)
-
-        #Finding dT/dt
-        arr2 = []
-        for i in range(0, len(arr)):
-            arr2.append(arr[i]/dt)
-
-        #Finding std for all temperatures of the cells
-        arr3 = []
-        for i in range(0, len(arr2)):
-            STD_VALUE = np.std(arr2[i])
-            arr3.append(STD_VALUE*Threshold1)
-
-        #Finding the maximum std value
-        if max(arr3) > Threshold2:
-            Signal = Signal + 1
-
+        SensorWithIssue = None
+        #Sensor Names
+        TempArrays = ['TS1', 'TS2', 'TS3', 'TS4', 'TS5', 'TS6', 'TS7', 'TS8', 'TS9', 'TS10', 'TS11', 'TS12', 'TS0_FLT', 'TS13_FLT']
+        # TempArrays = ['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6','ts7', 'ts8', 'ts9', 'ts10', 'ts11', 'ts12', 'ts0_flt', 'ts13_flt']
+        #Parameters
+        ThresholdValv1 = 0.0011
+        ThresholdValv2 = 0.0025
+        WindowThreshold = 20
+        #FeatureFetching
+        TS_FILE_DF = TS_FILE_DF[TempArrays]
+        #Mean Centering
+        TS_FILE_DF = TS_FILE_DF - TS_FILE_DF.mean()
+        #Moving average filtered New data
+        NewArr = np.array([moving_average(data = TS_FILE_DF[i], window_size = WindowThreshold) for i in TempArrays])
+        #OldArr
+        OldArr = np.array([np.array(TS_FILE_DF[i]) for i in TempArrays])
+        #Old vs New Diff
+        DiffArr = OldArr-NewArr
+        #Varience Storage
+        VarianceStorage = [np.var(DiffArr[i][WindowThreshold-1:]) for i in range(0,len(DiffArr))]
+        #Threshold
+        for i in range(0,len(VarianceStorage)):
+            if i <= 11: #This is the threshold given for temperature sensors 'ts1', 'ts2', 'ts3', 'ts4', 'ts5','ts6', 'ts7', 'ts8', 'ts9', 'ts10', 'ts11', 'ts12'
+                if VarianceStorage[i] > ThresholdValv1:
+                    SensorWithIssue = f"TS{i+1}"
+                    Signal = Signal + 1
+                    break
+            else:       #This is the threshold given for temperature sensors 'ts0_flt','ts13_flt'
+                if VarianceStorage[i] > ThresholdValv2:
+                    if i == 12:
+                        SensorWithIssue = "TS0_FLT"
+                        Signal = Signal + 1
+                        break
+                    elif i == 13:
+                        SensorWithIssue = "TS13_FLT"
+                        Signal = Signal + 1
+                        break
         return Signal
 
     def ThermisterOpenIssueDetection(self, data):
@@ -2841,6 +2854,9 @@ class FETOFFEoLAnalysis(threading.Thread):
             sequences.append(current_sequence)
         return sequences
 
+    def moving_average(data, window_size):
+        return data.rolling(window=window_size).mean()
+
     def SolderIssueDetection(self, data):
         #Signal
         Signal = 0
@@ -2913,37 +2929,47 @@ class FETOFFEoLAnalysis(threading.Thread):
         return Signal
 
     def TemperatureFluctuationDetection(self, data):
-        #Signal
+        #data initialization
+        TS_FILE_DF = data
+        #Signal Initialization
         Signal = 0
-        Threshold1 = 10000
-        Threshold2 = 1
-        #Finding dT for all cells
-        arr = []
-        for i in range(0,13):
-            if i == 0:
-                arr.append(data['TS0_FLT'].diff().dropna().reset_index(drop = True))
-            else:
-                arr.append(data[f'TS{i}'].diff().dropna().reset_index(drop = True))
-        arr.append(data['TS13_FLT'].diff().dropna().reset_index(drop = True))
-
-        #Finding dt
-        dt = data['Millis'].diff().dropna().reset_index(drop = True)
-
-        #Finding dT/dt
-        arr2 = []
-        for i in range(0, len(arr)):
-            arr2.append(arr[i]/dt)
-
-        #Finding std for all temperatures of the cells
-        arr3 = []
-        for i in range(0, len(arr2)):
-            STD_VALUE = np.std(arr2[i])
-            arr3.append(STD_VALUE*Threshold1)
-
-        #Finding the maximum std value
-        if max(arr3) > Threshold2:
-            Signal = Signal + 1
-
+        SensorWithIssue = None
+        #Sensor Names
+        TempArrays = ['TS1', 'TS2', 'TS3', 'TS4', 'TS5', 'TS6', 'TS7', 'TS8', 'TS9', 'TS10', 'TS11', 'TS12', 'TS0_FLT', 'TS13_FLT']
+        # TempArrays = ['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6','ts7', 'ts8', 'ts9', 'ts10', 'ts11', 'ts12', 'ts0_flt', 'ts13_flt']
+        #Parameters
+        ThresholdValv1 = 0.0011
+        ThresholdValv2 = 0.0025
+        WindowThreshold = 20
+        #FeatureFetching
+        TS_FILE_DF = TS_FILE_DF[TempArrays]
+        #Mean Centering
+        TS_FILE_DF = TS_FILE_DF - TS_FILE_DF.mean()
+        #Moving average filtered New data
+        NewArr = np.array([moving_average(data = TS_FILE_DF[i], window_size = WindowThreshold) for i in TempArrays])
+        #OldArr
+        OldArr = np.array([np.array(TS_FILE_DF[i]) for i in TempArrays])
+        #Old vs New Diff
+        DiffArr = OldArr-NewArr
+        #Varience Storage
+        VarianceStorage = [np.var(DiffArr[i][WindowThreshold-1:]) for i in range(0,len(DiffArr))]
+        #Threshold
+        for i in range(0,len(VarianceStorage)):
+            if i <= 11: #This is the threshold given for temperature sensors 'ts1', 'ts2', 'ts3', 'ts4', 'ts5','ts6', 'ts7', 'ts8', 'ts9', 'ts10', 'ts11', 'ts12'
+                if VarianceStorage[i] > ThresholdValv1:
+                    SensorWithIssue = f"TS{i+1}"
+                    Signal = Signal + 1
+                    break
+            else:       #This is the threshold given for temperature sensors 'ts0_flt','ts13_flt'
+                if VarianceStorage[i] > ThresholdValv2:
+                    if i == 12:
+                        SensorWithIssue = "TS0_FLT"
+                        Signal = Signal + 1
+                        break
+                    elif i == 13:
+                        SensorWithIssue = "TS13_FLT"
+                        Signal = Signal + 1
+                        break
         return Signal
 
     def ThermisterOpenIssueDetection(self, data):
