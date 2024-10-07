@@ -1906,15 +1906,15 @@ class EoLAnalysis(threading.Thread):
                         }
                         FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             
-            # def color_result(val):
-            #     if val == 'Fail':
-            #         return f'\033[91m{val}\033[0m'  # Red color
-            #     else:
-            #         return f'\033[92m{val}\033[0m'
-                    
-            # FaultDetectionResults['Result'] = FaultDetectionResults['Result'].apply(color_result)
-
-            FaultDetectionResults.to_excel(os.path.join(FolderForSavingAllFiles, 'Summary.xlsx'), index = False)
+            def _color_red_or_green(val):
+                color = 'red' if val == 'Fail' else 'green'
+                return 'color: %s' % color
+            try:
+                # Apply the color formatting to the DataFrame
+                styled_data = FaultDetectionResults.style.applymap(_color_red_or_green, subset='Result')
+                styled_data.to_excel(os.path.join(FolderForSavingAllFiles, 'Summary.xlsx'), index = False)
+            except:
+                FaultDetectionResults.to_excel(os.path.join(FolderForSavingAllFiles, 'Summary.xlsx'), index = False)
             #####################################################################################################################################################################
             
             #EoL Plots
@@ -2823,15 +2823,15 @@ class FETOFFEoLAnalysis(threading.Thread):
                 UsableLocalGlobalDataFrame[f'd({particle})/dt'] = dTdtArray_Paticle
             UsableLocalGlobalDataFrame.to_csv(os.path.join(FolderForSavingAllFiles, 'PreCyclerData.csv'), index = False)
             
-            # def color_result(val):
-            #     if val == 'Fail':
-            #         return f'\033[91m{val}\033[0m'  # Red color
-            #     else:
-            #         return f'\033[92m{val}\033[0m'
-
-            # StorageDf['Result'] = StorageDf['Result'].apply(color_result)
-                
-            StorageDf.to_excel(os.path.join(FolderForSavingAllFiles, 'PreSummarySheet.xlsx'), index = False)
+            def _color_red_or_green(val):
+                color = 'red' if val == 'Fail' else 'green'
+                return 'color: %s' % color
+            try:
+                # Apply the color formatting to the DataFrame
+                styled_data = StorageDf.style.applymap(_color_red_or_green, subset='Result')
+                styled_data.to_excel(os.path.join(FolderForSavingAllFiles, 'PreSummarySheet.xlsx'), index = False)
+            except:
+                StorageDf.to_excel(os.path.join(FolderForSavingAllFiles, 'PreSummarySheet.xlsx'), index = False)                
 
             #Update Status
             StatusMessages.append('Completed : FET OFF EoL Analysis.')
