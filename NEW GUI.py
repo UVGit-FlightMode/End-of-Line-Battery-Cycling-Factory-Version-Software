@@ -1629,7 +1629,7 @@ class EoLAnalysis(threading.Thread):
             for particle in particulate:
                 dTdtArray_Paticle = UsableLocalGlobalDataFrame[particle].diff()/UsableLocalGlobalDataFrame['Millis'].diff()
                 UsableLocalGlobalDataFrame[f'd({particle})/dt'] = dTdtArray_Paticle
-            UsableLocalGlobalDataFrame.to_csv(os.path.join(FolderForSavingAllFiles, 'CyclingData.csv'), index = False)
+            UsableLocalGlobalDataFrame.to_csv(os.path.join(FolderForSavingAllFiles, f"CyclingData_{BatteryPackName.replace('-','_').replace(':','_')}.csv"), index = False)
 
             #EoL Algorithms
             #####################################################################################################################################################################
@@ -1735,7 +1735,7 @@ class EoLAnalysis(threading.Thread):
                             CheckArrDSGRST1.append('Pass')
                     CheckArrCHGRST2 = []
                     for LimitCross in np.array(CHGRST2Data[SingleParm]):
-                        if (LimitCross < Min_Limit) or (LimitCross > Max_DSG_Limit):
+                        if (LimitCross < Min_Limit) or (LimitCross > Max_CHG_Limit):
                             CheckArrCHGRST2.append('Fail')
                             break
                         else:
@@ -1798,7 +1798,7 @@ class EoLAnalysis(threading.Thread):
                         TurnDownParm = 'BAL_RES_TEMP'
                     dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[TurnDownParm]))
                     dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                    dTdtArray = dTArray/dtArray
+                    dTdtArray = (dTArray/dtArray)*1000
                     TotalCheckDone = []
                     for LimitCross in dTdtArray:
                         if (LimitCross < Min_Limit) or (LimitCross > Max_DSG_Limit):
@@ -1905,18 +1905,18 @@ class EoLAnalysis(threading.Thread):
                             'Result':['Pass']
                         }
                         FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
-            
+
             def _color_red_or_green(val):
                 color = 'red' if val == 'Fail' else 'green'
                 return 'color: %s' % color
             try:
                 # Apply the color formatting to the DataFrame
                 styled_data = FaultDetectionResults.style.applymap(_color_red_or_green, subset='Result')
-                styled_data.to_excel(os.path.join(FolderForSavingAllFiles, 'Summary.xlsx'), index = False)
+                styled_data.to_excel(os.path.join(FolderForSavingAllFiles, f"Summary_{BatteryPackName.replace('-','_').replace(':','_')}.xlsx"), index = False)
             except:
-                FaultDetectionResults.to_excel(os.path.join(FolderForSavingAllFiles, 'Summary.xlsx'), index = False)
+                FaultDetectionResults.to_excel(os.path.join(FolderForSavingAllFiles, f"Summary_{BatteryPackName.replace('-','_').replace(':','_')}.xlsx"), index = False)
             #####################################################################################################################################################################
-            
+
             #EoL Plots
             #####################################################################################################################################################################
             #Plotting TS1, TS2, TS3, TS4
@@ -1947,7 +1947,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[f'TS{SensorNum}']))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = dTArray/dtArray
+                dTdtArray = (dTArray/dtArray)*1000
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
@@ -1990,7 +1990,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[f'TS{SensorNum}']))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = dTArray/dtArray
+                dTdtArray = (dTArray/dtArray)*1000
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
@@ -2033,7 +2033,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[f'TS{SensorNum}']))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = dTArray/dtArray
+                dTdtArray = (dTArray/dtArray)*1000
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
@@ -2076,7 +2076,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[f'TS{SensorNum}']))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = dTArray/dtArray
+                dTdtArray = (dTArray/dtArray)*1000
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
@@ -2086,7 +2086,7 @@ class EoLAnalysis(threading.Thread):
                 ax1_twin.axhline(MinValvSec,linestyle='dashed', linewidth=2)
                 ax1_twin.set_ylabel('dT/dt')
                 ax1_twin.legend((f'dTS{SensorNum}/dt','dT/dt upperlimit','dT/dt lowerlimit'),loc=9)
-                ax1_twin.set_ylim(-0.05,0.5)
+                ax1_twin.set_ylim(-0.18,0.9)
 
             plt.suptitle(BatteryPackName)
             plt.savefig(os.path.join(FolderForSavingAllFiles, 'Cell Temperatures plot 4.png'))
@@ -2099,6 +2099,7 @@ class EoLAnalysis(threading.Thread):
             plt.title('Discharge Current')
             plt.ylabel('Current (A)')
 
+            plt.suptitle(BatteryPackName)
             plt.savefig(os.path.join(FolderForSavingAllFiles, 'Discharge_current_plot.png'))
 
             #Charge Current
@@ -2109,6 +2110,7 @@ class EoLAnalysis(threading.Thread):
             plt.title('Charge Current')
             plt.ylabel('Current (A)')
 
+            plt.suptitle(BatteryPackName)
             plt.savefig(os.path.join(FolderForSavingAllFiles, 'Charge_current_plot.png'))
 
             #Cell1-Cell14
@@ -2120,6 +2122,7 @@ class EoLAnalysis(threading.Thread):
             plt.title('Cell Voltages')
             plt.ylabel('Voltage (V)')
 
+            plt.suptitle(BatteryPackName)
             plt.savefig(os.path.join(FolderForSavingAllFiles, 'Cell_voltage_plot.png'))
 
             #FET Temp Front, BAT + ve Temp, BAT - ve Temp, Pack + ve Temp
@@ -2150,7 +2153,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[SensorNum]))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = dTArray/dtArray
+                dTdtArray = (dTArray/dtArray)*1000
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt'].index[0]]
@@ -2160,10 +2163,9 @@ class EoLAnalysis(threading.Thread):
                 ax1_twin.axhline(MinValvSec,linestyle='dashed', linewidth=2)
                 ax1_twin.set_ylabel('dT/dt')
                 ax1_twin.legend((f'd({SensorNum})/dt','dT/dt upperlimit','dT/dt lowerlimit'),loc=9)
-                ax1_twin.set_ylim(-0.05,0.5)
+                ax1_twin.set_ylim(-0.1,0.7)
 
             plt.suptitle(BatteryPackName)
-
             plt.savefig(os.path.join(FolderForSavingAllFiles, 'BMS Temperatures plot 1.png'))
 
             #FET_TEMP_REAR, BAL_RES_TEMP
@@ -2194,7 +2196,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[SensorNum]))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = dTArray/dtArray
+                dTdtArray = (dTArray/dtArray)*1000
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt'].index[0]]
@@ -2204,10 +2206,9 @@ class EoLAnalysis(threading.Thread):
                 ax1_twin.axhline(MinValvSec,linestyle='dashed', linewidth=2)
                 ax1_twin.set_ylabel(f'd({SensorNum})/dt')
                 ax1_twin.legend((f'd({SensorNum})/dt','dT/dt upperlimit','dT/dt lowerlimit'),loc=9)
-                ax1_twin.set_ylim(-0.09,0.6)
+                ax1_twin.set_ylim(-0.1,0.7)
 
             plt.suptitle(BatteryPackName)
-
             plt.savefig(os.path.join(FolderForSavingAllFiles, 'BMS Temperatures plot 2.png'))
 
             #Delta Temperature
@@ -2229,6 +2230,7 @@ class EoLAnalysis(threading.Thread):
             plt.grid()
             plt.title('Delta Temperature')
 
+            plt.suptitle(BatteryPackName)
             plt.savefig(os.path.join(FolderForSavingAllFiles, 'Cell_Delta_temp_plot.png'))
 
             #Delta Voltage
@@ -2266,7 +2268,7 @@ class EoLAnalysis(threading.Thread):
             plt.legend(('Cell_Delta_Volt_Min','Cell_Delta_Volt_Max','Cell_Delta_Volt_observed'))
             plt.grid()
             plt.title('Cell_delta_voltage')
-            plt.suptitle('Cell_delta_voltage')
+            plt.suptitle(BatteryPackName)
             plt.ylabel('Voltage (V)')
 
             plt.savefig(os.path.join(FolderForSavingAllFiles, 'Cell_delta_volt_plot.png'))
@@ -2281,7 +2283,7 @@ class EoLAnalysis(threading.Thread):
                 LowerBoundSoC.append(None)
             for bounding__ in range(len(RST2Data['SOC'])):
                 LowerBoundSoC.append(LimitsData[LimitsData['Parameters'] == 'SoC']['Min'][LimitsData[LimitsData['Parameters'] == 'SoC'].index[0]])
-            
+
             UpperBoundSoC = []
             for bounding__ in range(len(DSGData['SOC'])):
                 UpperBoundSoC.append(None)
@@ -2301,6 +2303,7 @@ class EoLAnalysis(threading.Thread):
             plt.title('SOC')
             plt.ylabel('SOC (%)')
 
+            plt.suptitle(BatteryPackName)
             plt.savefig(os.path.join(FolderForSavingAllFiles, 'SOC_plot.png'))
             #####################################################################################################################################################################
             #Updating the status
@@ -2330,7 +2333,7 @@ class EoLAnalysis(threading.Thread):
             sequences.append(current_sequence)
         return sequences
     
-    def moving_average(data, window_size):
+    def moving_average(self, data, window_size):
         return data.rolling(window=window_size).mean()
 
     def SolderIssueDetection(self, data):
@@ -2422,7 +2425,7 @@ class EoLAnalysis(threading.Thread):
         #Mean Centering
         TS_FILE_DF = TS_FILE_DF - TS_FILE_DF.mean()
         #Moving average filtered New data
-        NewArr = np.array([moving_average(data = TS_FILE_DF[i], window_size = WindowThreshold) for i in TempArrays])
+        NewArr = np.array([self.moving_average(data = TS_FILE_DF[i], window_size = WindowThreshold) for i in TempArrays])
         #OldArr
         OldArr = np.array([np.array(TS_FILE_DF[i]) for i in TempArrays])
         #Old vs New Diff
@@ -2706,6 +2709,7 @@ class FETOFFEoLAnalysis(threading.Thread):
         global CyclingResultsVariable
         global ResetButtonAblingDisabling
         global ResetButtonClicked
+        global BatteryPackName
 
         #Updating Status
         StatusMessages.append('FET Turned OFF!')
@@ -2821,7 +2825,7 @@ class FETOFFEoLAnalysis(threading.Thread):
             for particle in particulate:
                 dTdtArray_Paticle = UsableLocalGlobalDataFrame[particle].diff()/UsableLocalGlobalDataFrame['Millis'].diff()
                 UsableLocalGlobalDataFrame[f'd({particle})/dt'] = dTdtArray_Paticle
-            UsableLocalGlobalDataFrame.to_csv(os.path.join(FolderForSavingAllFiles, 'PreCyclerData.csv'), index = False)
+            UsableLocalGlobalDataFrame.to_csv(os.path.join(FolderForSavingAllFiles, f"PreCyclerData_{BatteryPackName.replace('-','_').replace(':','_')}.csv"), index = False)
             
             def _color_red_or_green(val):
                 color = 'red' if val == 'Fail' else 'green'
@@ -2829,9 +2833,9 @@ class FETOFFEoLAnalysis(threading.Thread):
             try:
                 # Apply the color formatting to the DataFrame
                 styled_data = StorageDf.style.applymap(_color_red_or_green, subset='Result')
-                styled_data.to_excel(os.path.join(FolderForSavingAllFiles, 'PreSummarySheet.xlsx'), index = False)
+                styled_data.to_excel(os.path.join(FolderForSavingAllFiles, f"PreSummarySheet_{BatteryPackName.replace('-','_').replace(':','_')}.xlsx"), index = False)
             except:
-                StorageDf.to_excel(os.path.join(FolderForSavingAllFiles, 'PreSummarySheet.xlsx'), index = False)                
+                StorageDf.to_excel(os.path.join(FolderForSavingAllFiles, f"PreSummarySheet_{BatteryPackName.replace('-','_').replace(':','_')}.xlsx"), index = False)                
 
             #Update Status
             StatusMessages.append('Completed : FET OFF EoL Analysis.')
@@ -2854,7 +2858,7 @@ class FETOFFEoLAnalysis(threading.Thread):
             sequences.append(current_sequence)
         return sequences
 
-    def moving_average(data, window_size):
+    def moving_average(self, data, window_size):
         return data.rolling(window=window_size).mean()
 
     def SolderIssueDetection(self, data):
@@ -2946,7 +2950,7 @@ class FETOFFEoLAnalysis(threading.Thread):
         #Mean Centering
         TS_FILE_DF = TS_FILE_DF - TS_FILE_DF.mean()
         #Moving average filtered New data
-        NewArr = np.array([moving_average(data = TS_FILE_DF[i], window_size = WindowThreshold) for i in TempArrays])
+        NewArr = np.array([self.moving_average(data = TS_FILE_DF[i], window_size = WindowThreshold) for i in TempArrays])
         #OldArr
         OldArr = np.array([np.array(TS_FILE_DF[i]) for i in TempArrays])
         #Old vs New Diff
