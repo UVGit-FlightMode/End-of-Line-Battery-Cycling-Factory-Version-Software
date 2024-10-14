@@ -21,20 +21,18 @@ Updating the color of Result Summary Sheet. Includes Green Color for PASS and re
 <br>
 EoL Analysis Changes :
 <br>
-1. Cyclingdata file name change
+a. Cyclingdata file name change
 <br>
-2. suptitle addition
+b. suptitle addition
 <br>
-3. summary sheet file name change
+c. summary sheet file name change
 <br>
-4. dT/dt factor multiplication
+d. dT/dt factor multiplication
 <br>
-5. Plots showing lower bound limit
+e. Plots showing lower bound limit
 <br>
-<br>
-
 FET Turn off Analysis Changes : 
 <br>
-1. Cyclingdata file name change
+a. Cyclingdata file name change
 <br>
-2. summary sheet file name change
+b. summary sheet file name change
