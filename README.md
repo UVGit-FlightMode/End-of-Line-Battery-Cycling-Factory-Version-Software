@@ -37,6 +37,7 @@ a. Cyclingdata file name change
 <br>
 b. summary sheet file name change
 <br>
+<br>
 5. Version 1.2.4 (Current Version)
 <br>
 1. Now provides information about the particular Cell or thermister that is having either of Solder, Weld, Fluctuation or Thermister Issue.
