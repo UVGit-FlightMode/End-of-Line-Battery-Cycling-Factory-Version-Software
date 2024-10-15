@@ -1628,18 +1628,19 @@ class EoLAnalysis(threading.Thread):
             particulate = ['TS1','TS2','TS3','TS4','TS5','TS6','TS7','TS8','TS9','TS10','TS11','TS12','FET Temp Front','BAT + ve Temp','BAT - ve Temp','Pack + ve Temp','TS0_FLT','TS13_FLT','FET_TEMP_REAR']
             for particle in particulate:
                 dTdtArray_Paticle = UsableLocalGlobalDataFrame[particle].diff()/UsableLocalGlobalDataFrame['Millis'].diff()
-                UsableLocalGlobalDataFrame[f'd({particle})/dt'] = dTdtArray_Paticle
+                UsableLocalGlobalDataFrame[f'd({particle})/dt'] = dTdtArray_Paticle*500
             UsableLocalGlobalDataFrame.to_csv(os.path.join(FolderForSavingAllFiles, f"CyclingData_{BatteryPackName.replace('-','_').replace(':','_')}.csv"), index = False)
 
             #EoL Algorithms
             #####################################################################################################################################################################
             #Solder Issue
             SolderIssueDataframe = UsableLocalGlobalDataFrame[['Cell1', 'Cell2', 'Cell3', 'Cell4', 'Cell5','Cell6', 'Cell7', 'Cell8','Cell9', 'Cell10','Cell11', 'Cell12', 'Cell13', 'Cell14', 'DSG_Current', 'CHG_Current']]
-            SolderIssueSignal = self.SolderIssueDetection(SolderIssueDataframe)
+            SolderIssueSignal, CellWithIssueSolder = self.SolderIssueDetection(SolderIssueDataframe)
             if SolderIssueSignal >= 1:
                 DictToSave = {
                     'Parameters':['Solder Issue'],
-                    'Result':['Fail']
+                    'Result':['Fail'],
+                    'Cell':[CellWithIssueSolder]
                 }
                 FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             else:
@@ -1650,11 +1651,12 @@ class EoLAnalysis(threading.Thread):
                 FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             #Weld Issue Charging
             WeldIssueDataFrame = UsableLocalGlobalDataFrame[['Cell1', 'Cell2', 'Cell3', 'Cell4', 'Cell5','Cell6', 'Cell7', 'Cell8','Cell9', 'Cell10','Cell11', 'Cell12', 'Cell13', 'Cell14', 'DSG_Current', 'CHG_Current', 'SOC']]
-            WeldIssueSignal = self.WeldIssueDetection(WeldIssueDataFrame)
+            WeldIssueSignal, CellWithIssueWeld = self.WeldIssueDetection(WeldIssueDataFrame)
             if WeldIssueSignal >= 1:
                 DictToSave = {
                     'Parameters':['Weld Issue'],
-                    'Result':['Fail']
+                    'Result':['Fail'],
+                    'Cell':[CellWithIssueWeld]
                 }
                 FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             else:
@@ -1665,11 +1667,12 @@ class EoLAnalysis(threading.Thread):
                 FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             #Temperature Fluctuation Issue 
             TemperatureFluctuationDataFrame = UsableLocalGlobalDataFrame[['Millis','TS1','TS2','TS3','TS4','TS5','TS6','TS7','TS8','TS9','TS10','TS11','TS12','TS0_FLT','TS13_FLT']]
-            TemperatureFluctuationSignal = self.TemperatureFluctuationDetection(TemperatureFluctuationDataFrame)
+            TemperatureFluctuationSignal, CellWithIssueTempFluc = self.TemperatureFluctuationDetection(TemperatureFluctuationDataFrame)
             if TemperatureFluctuationSignal >= 1:
                 DictToSave = {
                     'Parameters':['Temperature Fluctuation'],
-                    'Result':['Fail']
+                    'Result':['Fail'],
+                    'Cell':[CellWithIssueTempFluc]
                 }
                 FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             else:
@@ -1680,11 +1683,12 @@ class EoLAnalysis(threading.Thread):
                 FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             #Thermister Open Issue
             ThermisterOpenDataFrame = UsableLocalGlobalDataFrame[['TS1','TS2','TS3','TS4','TS5','TS6','TS7','TS8','TS9','TS10','TS11','TS12','TS0_FLT','TS13_FLT']]
-            ThermisterOpenSignal = self.ThermisterOpenIssueDetection(ThermisterOpenDataFrame)
+            ThermisterOpenSignal, CellWithIssueThermisterOpen = self.ThermisterOpenIssueDetection(ThermisterOpenDataFrame)
             if ThermisterOpenSignal >= 1:
                 DictToSave = {
                     'Parameters':['Thermister Open'],
-                    'Result':['Fail']
+                    'Result':['Fail'],
+                    'Cell':[CellWithIssueThermisterOpen]
                 }
                 FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             else:
@@ -1798,7 +1802,7 @@ class EoLAnalysis(threading.Thread):
                         TurnDownParm = 'BAL_RES_TEMP'
                     dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[TurnDownParm]))
                     dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                    dTdtArray = (dTArray/dtArray)*1000
+                    dTdtArray = (dTArray/dtArray)*500
                     TotalCheckDone = []
                     for LimitCross in dTdtArray:
                         if (LimitCross < Min_Limit) or (LimitCross > Max_DSG_Limit):
@@ -1947,7 +1951,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[f'TS{SensorNum}']))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = (dTArray/dtArray)*1000
+                dTdtArray = (dTArray/dtArray)*500
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
@@ -1990,7 +1994,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[f'TS{SensorNum}']))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = (dTArray/dtArray)*1000
+                dTdtArray = (dTArray/dtArray)*500
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
@@ -2033,7 +2037,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[f'TS{SensorNum}']))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = (dTArray/dtArray)*1000
+                dTdtArray = (dTArray/dtArray)*500
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
@@ -2076,7 +2080,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[f'TS{SensorNum}']))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = (dTArray/dtArray)*1000
+                dTdtArray = (dTArray/dtArray)*500
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'dTS{SensorNum}/dt'].index[0]]
@@ -2153,7 +2157,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[SensorNum]))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = (dTArray/dtArray)*1000
+                dTdtArray = (dTArray/dtArray)*500
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt'].index[0]]
@@ -2196,7 +2200,7 @@ class EoLAnalysis(threading.Thread):
                 #Calculating dT/dt
                 dTArray = np.diff(np.array(UsableLocalGlobalDataFrame[SensorNum]))
                 dtArray = np.diff(np.array(UsableLocalGlobalDataFrame['Millis']))
-                dTdtArray = (dTArray/dtArray)*1000
+                dTdtArray = (dTArray/dtArray)*500
                 #Finding Limits
                 MinValvSec = LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt']['Min'][LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt'].index[0]]
                 MaxValvSec = LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt']['Dis-Charging Phase & 2mins rest'][LimitsData[LimitsData['Parameters'] == f'd({SensorNum})/dt'].index[0]]
@@ -2345,6 +2349,7 @@ class EoLAnalysis(threading.Thread):
         NeglectLastRows = 5
         CellDVThreshold = 0.01
         Distance = 0.01
+        CellWithIssue = None
         #Fetching all Rest periods
         Rest_period_data = data[(data['DSG_Current'] <= 1) & (data['CHG_Current'] <= 1)]
         sequences = self.ConsecutiveSequence(index_list = Rest_period_data.index, Threshold = Threshold)
@@ -2372,8 +2377,9 @@ class EoLAnalysis(threading.Thread):
                         LowerOutlierLimit = Q1 - Distance
                         if (max(CentralTendency) > UpperOutlierLimit) and (min(CentralTendency) < LowerOutlierLimit):
                             Signal = Signal + 1
+                            CellWithIssue = [f"Cell{CentralTendency.index(min(CentralTendency)) + 1}", f"Cell{CentralTendency.index(max(CentralTendency)) + 1}"]
                             break
-        return Signal
+        return Signal, CellWithIssue
 
     def WeldIssueDetection(self, data):
         #Signal
@@ -2384,6 +2390,7 @@ class EoLAnalysis(threading.Thread):
         SoCCheck = 20
         NeglectFirstRows = 20
         NeglectLastRows = 10
+        CellWithIssue = None
         #Fetching all Rest periods
         Rest_period_data = data[(data['DSG_Current'] <= 1) & (data['CHG_Current'] <= 1)]
         sequences = self.ConsecutiveSequence(index_list = Rest_period_data.index, Threshold = Threshold)
@@ -2405,7 +2412,8 @@ class EoLAnalysis(threading.Thread):
                     if SOC <= SoCCheck:
                         if min(CellDV) >= valv:
                             Signal = Signal + 1
-        return Signal
+                            CellWithIssue = FilteredData[['Cell1', 'Cell2', 'Cell3', 'Cell4', 'Cell5','Cell6', 'Cell7', 'Cell8','Cell9', 'Cell10','Cell11', 'Cell12', 'Cell13', 'Cell14']].iloc[np.where(CellDV == min(CellDV))[0][0]].idxmin()
+        return Signal, CellWithIssue
 
     def TemperatureFluctuationDetection(self, data):
         #data initialization
@@ -2413,6 +2421,7 @@ class EoLAnalysis(threading.Thread):
         #Signal Initialization
         Signal = 0
         SensorWithIssue = None
+        CellWithIssue = None
         #Sensor Names
         TempArrays = ['TS1', 'TS2', 'TS3', 'TS4', 'TS5', 'TS6', 'TS7', 'TS8', 'TS9', 'TS10', 'TS11', 'TS12', 'TS0_FLT', 'TS13_FLT']
         # TempArrays = ['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6','ts7', 'ts8', 'ts9', 'ts10', 'ts11', 'ts12', 'ts0_flt', 'ts13_flt']
@@ -2438,22 +2447,26 @@ class EoLAnalysis(threading.Thread):
                 if VarianceStorage[i] > ThresholdValv1:
                     SensorWithIssue = f"TS{i+1}"
                     Signal = Signal + 1
+                    CellWithIssue = f"TS{i+1}"
                     break
             else:       #This is the threshold given for temperature sensors 'ts0_flt','ts13_flt'
                 if VarianceStorage[i] > ThresholdValv2:
                     if i == 12:
                         SensorWithIssue = "TS0_FLT"
                         Signal = Signal + 1
+                        CellWithIssue = f"TS0_FLT"
                         break
                     elif i == 13:
                         SensorWithIssue = "TS13_FLT"
                         Signal = Signal + 1
+                        CellWithIssue = f"TS13_FLT"
                         break
-        return Signal
+        return Signal, CellWithIssue
 
     def ThermisterOpenIssueDetection(self, data):
         #Signal
         Signal = 0
+        CellWithIssue = None
         #Logic
         for i in range(0,14):
             if i == 0:
@@ -2465,6 +2478,7 @@ class EoLAnalysis(threading.Thread):
                     req_arr = np.array(data['TS0_FLT'][starting_index:])
                     if all(element >= 600 for element in req_arr):
                         Signal = Signal + 1
+                        CellWithIssue = 'TS0_FLT'
                         break
 
             elif i == 13:
@@ -2476,6 +2490,7 @@ class EoLAnalysis(threading.Thread):
                     req_arr = np.array(data['TS13_FLT'][starting_index:])
                     if all(element >= 600 for element in req_arr):
                         Signal = Signal + 1
+                        CellWithIssue = 'TS13_FLT'
                         break
 
             else:
@@ -2487,8 +2502,9 @@ class EoLAnalysis(threading.Thread):
                     req_arr = np.array(data[f'TS{i}'][starting_index:])
                     if all(element >= 600 for element in req_arr):
                         Signal = Signal + 1
+                        CellWithIssue = f"TS{i}"
                         break
-        return Signal
+        return Signal, CellWithIssue
 
     def DeltaTemperatureIssueDetection(self, data):
         #Signal
@@ -2745,11 +2761,12 @@ class FETOFFEoLAnalysis(threading.Thread):
             #####################################################################################################################################################################
             #Solder Issue
             SolderIssueDataframe = UsableLocalGlobalDataFrame[['Cell1', 'Cell2', 'Cell3', 'Cell4', 'Cell5','Cell6', 'Cell7', 'Cell8','Cell9', 'Cell10','Cell11', 'Cell12', 'Cell13', 'Cell14', 'DSG_Current', 'CHG_Current']]
-            SolderIssueSignal = self.SolderIssueDetection(SolderIssueDataframe)
+            SolderIssueSignal, CellWithIssueSolder = self.SolderIssueDetection(SolderIssueDataframe)
             if SolderIssueSignal >= 1:
                 DictToSave = {
                     'Parameters':['Solder Issue'],
-                    'Result':['Fail']
+                    'Result':['Fail'],
+                    'Cell':[CellWithIssueSolder]
                 }
                 StorageDf = pd.concat([StorageDf, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             else:
@@ -2760,11 +2777,12 @@ class FETOFFEoLAnalysis(threading.Thread):
                 StorageDf = pd.concat([StorageDf, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             #Weld Issue Charging
             WeldIssueDataFrame = UsableLocalGlobalDataFrame[['Cell1', 'Cell2', 'Cell3', 'Cell4', 'Cell5','Cell6', 'Cell7', 'Cell8','Cell9', 'Cell10','Cell11', 'Cell12', 'Cell13', 'Cell14', 'DSG_Current', 'CHG_Current', 'SOC']]
-            WeldIssueSignal = self.WeldIssueDetection(WeldIssueDataFrame)
+            WeldIssueSignal, CellWithIssueWeld = self.WeldIssueDetection(WeldIssueDataFrame)
             if WeldIssueSignal >= 1:
                 DictToSave = {
                     'Parameters':['Weld Issue'],
-                    'Result':['Fail']
+                    'Result':['Fail'],
+                    'Cell':[CellWithIssueWeld]
                 }
                 StorageDf = pd.concat([StorageDf, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             else:
@@ -2775,11 +2793,12 @@ class FETOFFEoLAnalysis(threading.Thread):
                 StorageDf = pd.concat([StorageDf, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             #Temperature Fluctuation Issue 
             TemperatureFluctuationDataFrame = UsableLocalGlobalDataFrame[['Millis','TS1','TS2','TS3','TS4','TS5','TS6','TS7','TS8','TS9','TS10','TS11','TS12','TS0_FLT','TS13_FLT']]
-            TemperatureFluctuationSignal = self.TemperatureFluctuationDetection(TemperatureFluctuationDataFrame)
+            TemperatureFluctuationSignal, CellWithIssueTempFluc = self.TemperatureFluctuationDetection(TemperatureFluctuationDataFrame)
             if TemperatureFluctuationSignal >= 1:
                 DictToSave = {
                     'Parameters':['Temperature Fluctuation'],
-                    'Result':['Fail']
+                    'Result':['Fail'],
+                    'Cell':[CellWithIssueTempFluc]
                 }
                 StorageDf = pd.concat([StorageDf, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             else:
@@ -2790,11 +2809,12 @@ class FETOFFEoLAnalysis(threading.Thread):
                 StorageDf = pd.concat([StorageDf, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             #Thermister Open Issue
             ThermisterOpenDataFrame = UsableLocalGlobalDataFrame[['TS1','TS2','TS3','TS4','TS5','TS6','TS7','TS8','TS9','TS10','TS11','TS12','TS0_FLT','TS13_FLT']]
-            ThermisterOpenSignal = self.ThermisterOpenIssueDetection(ThermisterOpenDataFrame)
+            ThermisterOpenSignal, CellWithIssueThermisterOpen = self.ThermisterOpenIssueDetection(ThermisterOpenDataFrame)
             if ThermisterOpenSignal >= 1:
                 DictToSave = {
                     'Parameters':['Thermister Open'],
-                    'Result':['Fail']
+                    'Result':['Fail'],
+                    'Cell':[CellWithIssueThermisterOpen]
                 }
                 StorageDf = pd.concat([StorageDf, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             else:
@@ -2824,7 +2844,7 @@ class FETOFFEoLAnalysis(threading.Thread):
             particulate = ['TS1','TS2','TS3','TS4','TS5','TS6','TS7','TS8','TS9','TS10','TS11','TS12','FET Temp Front','BAT + ve Temp','BAT - ve Temp','Pack + ve Temp','TS0_FLT','TS13_FLT','FET_TEMP_REAR']
             for particle in particulate:
                 dTdtArray_Paticle = UsableLocalGlobalDataFrame[particle].diff()/UsableLocalGlobalDataFrame['Millis'].diff()
-                UsableLocalGlobalDataFrame[f'd({particle})/dt'] = dTdtArray_Paticle
+                UsableLocalGlobalDataFrame[f'd({particle})/dt'] = dTdtArray_Paticle*500
             UsableLocalGlobalDataFrame.to_csv(os.path.join(FolderForSavingAllFiles, f"PreCyclerData_{BatteryPackName.replace('-','_').replace(':','_')}.csv"), index = False)
             
             def _color_red_or_green(val):
@@ -2870,6 +2890,7 @@ class FETOFFEoLAnalysis(threading.Thread):
         NeglectLastRows = 5
         CellDVThreshold = 0.01
         Distance = 0.01
+        CellWithIssue = None
         #Fetching all Rest periods
         Rest_period_data = data[(data['DSG_Current'] <= 1) & (data['CHG_Current'] <= 1)]
         sequences = self.ConsecutiveSequence(index_list = Rest_period_data.index, Threshold = Threshold)
@@ -2897,8 +2918,9 @@ class FETOFFEoLAnalysis(threading.Thread):
                         LowerOutlierLimit = Q1 - Distance
                         if (max(CentralTendency) > UpperOutlierLimit) and (min(CentralTendency) < LowerOutlierLimit):
                             Signal = Signal + 1
+                            CellWithIssue = [f"Cell{CentralTendency.index(min(CentralTendency)) + 1}", f"Cell{CentralTendency.index(max(CentralTendency)) + 1}"]
                             break
-        return Signal
+        return Signal, CellWithIssue
 
     def WeldIssueDetection(self, data):
         #Signal
@@ -2909,6 +2931,7 @@ class FETOFFEoLAnalysis(threading.Thread):
         SoCCheck = 20
         NeglectFirstRows = 20
         NeglectLastRows = 10
+        CellWithIssue = None
         #Fetching all Rest periods
         Rest_period_data = data[(data['DSG_Current'] <= 1) & (data['CHG_Current'] <= 1)]
         sequences = self.ConsecutiveSequence(index_list = Rest_period_data.index, Threshold = Threshold)
@@ -2930,7 +2953,8 @@ class FETOFFEoLAnalysis(threading.Thread):
                     if SOC <= SoCCheck:
                         if min(CellDV) >= valv:
                             Signal = Signal + 1
-        return Signal
+                            CellWithIssue = FilteredData[['Cell1', 'Cell2', 'Cell3', 'Cell4', 'Cell5','Cell6', 'Cell7', 'Cell8','Cell9', 'Cell10','Cell11', 'Cell12', 'Cell13', 'Cell14']].iloc[np.where(CellDV == min(CellDV))[0][0]].idxmin()
+        return Signal, CellWithIssue
 
     def TemperatureFluctuationDetection(self, data):
         #data initialization
@@ -2938,6 +2962,7 @@ class FETOFFEoLAnalysis(threading.Thread):
         #Signal Initialization
         Signal = 0
         SensorWithIssue = None
+        CellWithIssue = None
         #Sensor Names
         TempArrays = ['TS1', 'TS2', 'TS3', 'TS4', 'TS5', 'TS6', 'TS7', 'TS8', 'TS9', 'TS10', 'TS11', 'TS12', 'TS0_FLT', 'TS13_FLT']
         # TempArrays = ['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6','ts7', 'ts8', 'ts9', 'ts10', 'ts11', 'ts12', 'ts0_flt', 'ts13_flt']
@@ -2963,22 +2988,26 @@ class FETOFFEoLAnalysis(threading.Thread):
                 if VarianceStorage[i] > ThresholdValv1:
                     SensorWithIssue = f"TS{i+1}"
                     Signal = Signal + 1
+                    CellWithIssue = f"TS{i+1}"
                     break
             else:       #This is the threshold given for temperature sensors 'ts0_flt','ts13_flt'
                 if VarianceStorage[i] > ThresholdValv2:
                     if i == 12:
                         SensorWithIssue = "TS0_FLT"
                         Signal = Signal + 1
+                        CellWithIssue = f"TS0_FLT"
                         break
                     elif i == 13:
                         SensorWithIssue = "TS13_FLT"
                         Signal = Signal + 1
+                        CellWithIssue = f"TS13_FLT"
                         break
-        return Signal
+        return Signal, CellWithIssue
 
     def ThermisterOpenIssueDetection(self, data):
         #Signal
         Signal = 0
+        CellWithIssue = None
         #Logic
         for i in range(0,14):
             if i == 0:
@@ -2990,6 +3019,7 @@ class FETOFFEoLAnalysis(threading.Thread):
                     req_arr = np.array(data['TS0_FLT'][starting_index:])
                     if all(element >= 600 for element in req_arr):
                         Signal = Signal + 1
+                        CellWithIssue = 'TS0_FLT'
                         break
 
             elif i == 13:
@@ -3001,6 +3031,7 @@ class FETOFFEoLAnalysis(threading.Thread):
                     req_arr = np.array(data['TS13_FLT'][starting_index:])
                     if all(element >= 600 for element in req_arr):
                         Signal = Signal + 1
+                        CellWithIssue = 'TS13_FLT'
                         break
 
             else:
@@ -3012,8 +3043,9 @@ class FETOFFEoLAnalysis(threading.Thread):
                     req_arr = np.array(data[f'TS{i}'][starting_index:])
                     if all(element >= 600 for element in req_arr):
                         Signal = Signal + 1
+                        CellWithIssue = f"TS{i}"
                         break
-        return Signal
+        return Signal, CellWithIssue
 
     def DeltaTemperatureIssueDetection(self, data):
         #Signal

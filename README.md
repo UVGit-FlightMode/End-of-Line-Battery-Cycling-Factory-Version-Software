@@ -17,7 +17,7 @@ Updating the Version 2.0.0 of Temperature Fluctuation Algorithm which detects an
 Updating the color of Result Summary Sheet. Includes Green Color for PASS and red color for FAIL.
 <br>
 <br>
-4. Version 1.1.4 (Current Version)
+4. Version 1.1.4
 <br>
 EoL Analysis Changes :
 <br>
@@ -36,3 +36,9 @@ FET Turn off Analysis Changes :
 a. Cyclingdata file name change
 <br>
 b. summary sheet file name change
+<br>
+5. Version 1.2.4 (Current Version)
+<br>
+1. Now provides information about the particular Cell or thermister that is having either of Solder, Weld, Fluctuation or Thermister Issue.
+<br>
+2. Updating the dT/dt value to match the scale in the stored data as well as summary sheet analysis.
