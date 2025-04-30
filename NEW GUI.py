@@ -1667,20 +1667,12 @@ class EoLAnalysis(threading.Thread):
                 FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             #Temperature Fluctuation Issue 
             TemperatureFluctuationDataFrame = UsableLocalGlobalDataFrame[['Millis','TS1','TS2','TS3','TS4','TS5','TS6','TS7','TS8','TS9','TS10','TS11','TS12','TS0_FLT','TS13_FLT']]
-            TemperatureFluctuationSignal, CellWithIssueTempFluc = self.TemperatureFluctuationDetection(TemperatureFluctuationDataFrame)
-            if TemperatureFluctuationSignal >= 1:
-                DictToSave = {
+            DictToSave = {
                     'Parameters':['Temperature Fluctuation'],
-                    'Result':['Fail'],
-                    'Cell':[CellWithIssueTempFluc]
+                    'Result':[''],
+                    'Cell':['']
                 }
-                FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
-            else:
-                DictToSave = {
-                    'Parameters':['Temperature Fluctuation'],
-                    'Result':['Pass']
-                }
-                FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
+            FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             #Thermister Open Issue
             ThermisterOpenDataFrame = UsableLocalGlobalDataFrame[['TS1','TS2','TS3','TS4','TS5','TS6','TS7','TS8','TS9','TS10','TS11','TS12','TS0_FLT','TS13_FLT']]
             ThermisterOpenSignal, CellWithIssueThermisterOpen = self.ThermisterOpenIssueDetection(ThermisterOpenDataFrame)
@@ -1909,6 +1901,59 @@ class EoLAnalysis(threading.Thread):
                             'Result':['Pass']
                         }
                         FaultDetectionResults = pd.concat([FaultDetectionResults, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
+
+            Judgemental_Array = []
+            for iselection in ['dTS1/dt', 'dTS2/dt', 'dTS3/dt','dTS4/dt', 'dTS5/dt', 'dTS6/dt', 'dTS7/dt', 'dTS8/dt', 'dTS9/dt','dTS10/dt', 'dTS11/dt', 'dTS12/dt', 'dTS0_FLT/dt', 'dTS13_FLT/dt']:
+                Judgemental_Array.append(FaultDetectionResults[FaultDetectionResults['Parameters'] == iselection]['Result'][FaultDetectionResults[FaultDetectionResults['Parameters'] == iselection].index[0]])
+            
+            if 'Fail' in Judgemental_Array:
+                FaultDetectionResults['Result'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = 'Fail'
+                for iselection2 in range(0, len(Judgemental_Array)):
+                    if Judgemental_Array[iselection2] == 'Fail':
+                        if iselection2 == 0:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell1"
+                            break
+                        if iselection2 == 1:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell2"
+                            break
+                        if iselection2 == 2:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell3"
+                            break
+                        if iselection2 == 3:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell4"
+                            break
+                        if iselection2 == 4:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell5"
+                            break
+                        if iselection2 == 5:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell6"
+                            break
+                        if iselection2 == 6:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell7"
+                            break
+                        if iselection2 == 7:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell8"
+                            break
+                        if iselection2 == 8:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell9"
+                            break
+                        if iselection2 == 9:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell10"
+                            break
+                        if iselection2 == 10:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell11"
+                            break
+                        if iselection2 == 11:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell12"
+                            break
+                        if iselection2 == 12:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell0"
+                            break
+                        if iselection2 == 13:
+                            FaultDetectionResults['Cell'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = "Cell13"
+                            break
+            else:
+                FaultDetectionResults['Result'][FaultDetectionResults[FaultDetectionResults['Parameters'] == 'Temperature Fluctuation'].index[0]] = 'Pass'
 
             def _color_red_or_green(val):
                 color = 'red' if val == 'Fail' else 'green'
@@ -2793,20 +2838,12 @@ class FETOFFEoLAnalysis(threading.Thread):
                 StorageDf = pd.concat([StorageDf, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             #Temperature Fluctuation Issue 
             TemperatureFluctuationDataFrame = UsableLocalGlobalDataFrame[['Millis','TS1','TS2','TS3','TS4','TS5','TS6','TS7','TS8','TS9','TS10','TS11','TS12','TS0_FLT','TS13_FLT']]
-            TemperatureFluctuationSignal, CellWithIssueTempFluc = self.TemperatureFluctuationDetection(TemperatureFluctuationDataFrame)
-            if TemperatureFluctuationSignal >= 1:
-                DictToSave = {
+            DictToSave = {
                     'Parameters':['Temperature Fluctuation'],
-                    'Result':['Fail'],
-                    'Cell':[CellWithIssueTempFluc]
+                    'Result':['Not Detecting in case of FetOff'],
+                    'Cell':['']
                 }
-                StorageDf = pd.concat([StorageDf, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
-            else:
-                DictToSave = {
-                    'Parameters':['Temperature Fluctuation'],
-                    'Result':['Pass']
-                }
-                StorageDf = pd.concat([StorageDf, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
+            StorageDf = pd.concat([StorageDf, pd.DataFrame.from_dict(DictToSave)], ignore_index = True).reset_index(drop = True)
             #Thermister Open Issue
             ThermisterOpenDataFrame = UsableLocalGlobalDataFrame[['TS1','TS2','TS3','TS4','TS5','TS6','TS7','TS8','TS9','TS10','TS11','TS12','TS0_FLT','TS13_FLT']]
             ThermisterOpenSignal, CellWithIssueThermisterOpen = self.ThermisterOpenIssueDetection(ThermisterOpenDataFrame)

@@ -38,8 +38,18 @@ a. Cyclingdata file name change
 b. summary sheet file name change
 <br>
 <br>
-5. Version 1.2.4 (Current Version)
+5. Version 1.2.4
 <br>
 1. Now provides information about the particular Cell or thermister that is having either of Solder, Weld, Fluctuation or Thermister Issue.
 <br>
 2. Updating the dT/dt value to match the scale in the stored data as well as summary sheet analysis.
+<br>
+<br>
+6. Version 1.2.5
+<br>
+1. Updated the Temperature Fluctuation algorithm to reduce the False Positives in the Summary sheet.
+<br>
+<br>
+7. Version 1.2.6 (Current Version)
+<br>
+Updated the dT/dt limit from -0.025, 0.03 to -0.04, 0.04 to counter the unnessary False alerts.
